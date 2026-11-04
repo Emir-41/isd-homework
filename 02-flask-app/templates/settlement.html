@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Settle up | Flat Force One{% endblock %}
+{% block content %}
+  <h1>Time to settle up</h1>
+  <p>CHF {{ total|chf }} in shared costs for {{ balances|length }} flatmates.</p>
+
+  <section>
+    <h2>Who pays whom?</h2>
+    {% if transfers %}
+      <div class="table-scroll">
+        <table>
+          <caption class="sr-only">Suggested payments</caption>
+          <thead>
+            <tr>
+              <th scope="col">From</th>
+              <th scope="col">To</th>
+              <th scope="col" class="number">CHF</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for transfer in transfers %}
+              <tr>
+                <td>{{ transfer["from"] }}</td>
+                <td>{{ transfer["to"] }}</td>
+                <td class="number">{{ transfer["amount"]|chf }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>All settled. The flat can get back to arguing.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Per flatmate (CHF)</h2>
+    <div class="table-scroll">
+      <table>
+        <caption class="sr-only">Amounts paid, shares and balances in CHF</caption>
+        <thead>
+          <tr>
+            <th scope="col">Flatmate</th>
+            <th scope="col" class="number">Paid</th>
+            <th scope="col" class="number">Share</th>
+            <th scope="col" class="number">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for person in balances %}
+            <tr>
+              <td>{{ person["name"] }}</td>
+              <td class="number">{{ person["paid"]|chf }}</td>
+              <td class="number">{{ person["share"]|chf }}</td>
+              <td class="number">{{ person["balance"]|chf }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

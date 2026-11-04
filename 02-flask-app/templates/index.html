@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Expenses | Flat Force One{% endblock %}
+{% block content %}
+  <h1>The flat's expense sheet</h1>
+  <p>The toaster is gold. The dishes are still dirty.</p>
+  <figure class="flat-picture">
+    <img src="{{ url_for('static', filename='flat-kitchen.png') }}" alt="Caricature of Elon Musk, Donald Trump and JD Vance at their shared kitchen table.">
+    <figcaption>Political satire · All expenses are fictional.</figcaption>
+  </figure>
+  <p class="total"><strong>Total: CHF {{ total|chf }}</strong> <span>Expenses: {{ expenses|length }}</span></p>
+
+  <div class="layout">
+    <section>
+      <h2>On the tab</h2>
+      {% if expenses %}
+        <div class="table-scroll">
+          <table>
+            <caption class="sr-only">Shared expenses</caption>
+            <thead>
+              <tr>
+                <th scope="col">Description</th>
+                <th scope="col">Paid by</th>
+                <th scope="col" class="number">CHF</th>
+                <th scope="col"><span class="sr-only">Action</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for expense in expenses %}
+                <tr>
+                  <td>{{ expense["description"] }}</td>
+                  <td>{{ expense["person"] }}</td>
+                  <td class="number">{{ expense["amount"]|chf }}</td>
+                  <td>
+                    <form action="{{ url_for('delete_expense', expense_id=expense['id']) }}" method="post">
+                      <button class="delete-button" type="submit" aria-label="Remove {{ expense['description'] }}">Remove</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>No expenses yet. That won't last.</p>
+      {% endif %}
+      <p><a href="{{ url_for('settlement') }}">Settle up</a></p>
+    </section>
+
+    <section class="expense-form" aria-labelledby="add-heading">
+      <h2 id="add-heading">New shared expense</h2>
+      {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+      <form method="post" action="{{ url_for('home') }}">
+        <label for="person">Paid by</label>
+        <select id="person" name="person" required>
+          {% for member in members %}
+            <option value="{{ member }}" {% if form['person'] == member %}selected{% endif %}>{{ member }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="description">What was it for?</label>
+        <input id="description" name="description" value="{{ form['description'] }}" placeholder="e.g. washing-up liquid" maxlength="80" required>
+
+        <label for="amount">Amount in CHF</label>
+        <input id="amount" name="amount" type="text" inputmode="decimal" value="{{ form['amount'] }}" placeholder="12.50" maxlength="10" required>
+
+        <button type="submit">Add expense</button>
+      </form>
+    </section>
+  </div>
+{% endblock %}
