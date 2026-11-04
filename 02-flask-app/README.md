@@ -4,6 +4,8 @@ A satirical Flask expense splitter for a fictional flat shared by Elon Musk, Don
 
 All expenses and the flat-share story are fictional. This folder contains the Flask app assignment.
 
+[Live demo](https://flat-force-one-isd.vercel.app)
+
 ## Run the app
 
 You need Python 3.9 or later and pip. Open a terminal in `02-flask-app`. On macOS or Linux:
