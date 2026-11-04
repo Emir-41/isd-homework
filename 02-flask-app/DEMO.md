@@ -32,4 +32,4 @@ Total: CHF 90. Each flatmate owes a share of CHF 30. Elon has paid CHF 60, so he
 
 Show the expenses in `app.py`, then `total_expenses()` and `calculate_balances()` in `calculations.py`. Explain the formula `paid − share`. Next, show how `render_template()` sends the data to the HTML page.
 
-The caricature is an image in `static/`. It has no effect on the calculation. New entries remain available until the app restarts.
+The caricature is an image in `public/static/`. It has no effect on the calculation. Each browser has its own demo expenses in a signed cookie. Clearing the site's cookies restores the sample data.

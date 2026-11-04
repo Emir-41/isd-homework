@@ -1,17 +1,42 @@
-from flask import Flask, abort, redirect, render_template, request, url_for
+import os
+import secrets
+
+from flask import Flask, abort, redirect, render_template, request, session, url_for
 
 from calculations import calculate_balances, calculate_transfers, total_expenses
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="public/static")
+
+secret_key = os.environ.get("SECRET_KEY")
+if os.environ.get("VERCEL") and not secret_key:
+    raise RuntimeError("Set SECRET_KEY before deploying the app.")
+app.secret_key = secret_key or secrets.token_hex(32)
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = bool(os.environ.get("VERCEL"))
 
 members = ["Elon Musk", "Donald Trump", "JD Vance"]
 
 # Amounts are stored in cents: 4200 means CHF 42.00.
-expenses = [
+sample_expenses = [
     {"id": 1, "person": "Elon Musk", "description": "Wi-Fi for Mars", "amount": 4200},
     {"id": 2, "person": "Donald Trump", "description": "Gold spray for the toaster", "amount": 3000},
     {"id": 3, "person": "Elon Musk", "description": "Backyard rocket launch", "amount": 1800},
 ]
+
+
+def get_expenses():
+    if "expenses" not in session:
+        session["expenses"] = list(sample_expenses)
+    return session["expenses"]
+
+
+def save_expenses(expenses):
+    # Leave room for the cookie name and settings within the browser's limit.
+    serializer = app.session_interface.get_signing_serializer(app)
+    if len(serializer.dumps({"expenses": expenses})) > 3500:
+        return False
+    session["expenses"] = expenses
+    return True
 
 
 def parse_amount(text):
@@ -40,6 +65,7 @@ def format_chf(cents):
 
 @app.route("/", methods=["GET", "POST"])
 def home():
+    expenses = get_expenses()
     error = None
     form = {"person": members[0], "description": "", "amount": ""}
 
@@ -65,13 +91,15 @@ def home():
             if expenses:
                 next_id = expenses[-1]["id"] + 1
 
-            expenses.append({
+            new_expense = {
                 "id": next_id,
                 "person": form["person"],
                 "description": form["description"],
                 "amount": amount,
-            })
-            return redirect(url_for("home"))
+            }
+            if save_expenses(expenses + [new_expense]):
+                return redirect(url_for("home"))
+            error = "The demo is full. Remove an expense before adding another."
 
     return render_template(
         "index.html",
@@ -85,6 +113,7 @@ def home():
 
 @app.route("/settlement")
 def settlement():
+    expenses = get_expenses()
     balances = calculate_balances(members, expenses)
     return render_template(
         "settlement.html",
@@ -96,9 +125,11 @@ def settlement():
 
 @app.route("/expenses/<int:expense_id>/delete", methods=["POST"])
 def delete_expense(expense_id):
+    expenses = get_expenses()
     for expense in expenses:
         if expense["id"] == expense_id:
             expenses.remove(expense)
+            session["expenses"] = expenses
             return redirect(url_for("home"))
     abort(404)
 

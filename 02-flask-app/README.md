@@ -48,17 +48,26 @@ Amounts are stored as whole cents, where 100 cents equal CHF 1.00. If a total ca
 ├── app.py                  Flask routes, form handling and sample data
 ├── calculations.py         Totals, balances and suggested payments
 ├── requirements.txt        Flask dependency
+├── vercel.json             Hosting configuration
 ├── DEMO.md                 Live demonstration outline
 ├── templates/
 │   ├── base.html            Shared page layout
 │   ├── index.html           Expense list and form
 │   └── settlement.html      Balances and suggested payments
-└── static/
+└── public/static/
     ├── style.css           Styling
     └── flat-kitchen.png    Caricature of the fictional flatmates
 ```
 
-Data is stored in a Python list. Restarting the app, including an automatic reload after a code change, restores the sample data and removes newly added entries. This is a local demonstration for one shared flat and one server process.
+Each browser has its own copy of the expenses in a signed Flask session cookie. Changes survive page reloads and do not affect other visitors. Clearing the site's cookies starts a fresh demo. This is a small demonstration, with no database or shared accounts. Session cookies are signed, not encrypted, so use fictional expenses.
+
+Locally, the app generates a signing key at startup. Restarting it resets existing sessions unless you set a stable `SECRET_KEY` environment variable. The app rejects new entries if they would exceed its cookie storage limit.
+
+## Deploy on Vercel
+
+Import this repository and set **Root Directory** to `02-flask-app` and **Framework Preset** to `Flask`. Add a random `SECRET_KEY` as a production environment variable in Vercel, then deploy. Keep the key out of the repository. Vercel starts the Flask application directly, without the local debug server.
+
+The files in `public/static/` serve at `/static/` both locally and online.
 
 ## Manual checks
 
