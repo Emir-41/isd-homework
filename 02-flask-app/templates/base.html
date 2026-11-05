@@ -11,10 +11,11 @@
       <a class="site-title" href="{{ url_for('home') }}">Flat Force One</a>
       <nav aria-label="Navigation">
         <a href="{{ url_for('home') }}" {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>Expenses</a>
-        <a href="{{ url_for('settlement') }}" {% if request.endpoint == 'settlement' %}aria-current="page"{% endif %}>Settle up</a>
+        <a href="{{ url_for('settlement') }}" {% if request.endpoint == 'settlement' %}aria-current="page"{% endif %}>Settlement</a>
       </nav>
     </header>
     <main>
+      {# index.html and settlement.html supply their own content inside this layout. #}
       {% block content %}{% endblock %}
     </main>
   </body>

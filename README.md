@@ -20,7 +20,7 @@ No Flask installation is needed.
 
 ## Assignment 2: Flask app
 
-Flat Force One is a fictional flat shared by Elon Musk, Donald Trump and JD Vance. The app records shared expenses and suggests who pays whom. All characters' purchases are invented for the story.
+Flat Force One is a Flask app for splitting shared expenses between Elon Musk, Donald Trump and JD Vance.
 
 [Open the live demo](https://flat-force-one-isd.vercel.app). Each browser has its own demo expenses.
 

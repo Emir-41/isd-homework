@@ -5,14 +5,16 @@ from flask import Flask, abort, redirect, render_template, request, session, url
 
 from calculations import calculate_balances, calculate_transfers, total_expenses
 
+# Flask serves these files locally; Vercel serves the same folder online.
 app = Flask(__name__, static_folder="public/static")
 
+# A stable signing key keeps session cookies valid across server restarts.
 secret_key = os.environ.get("SECRET_KEY")
 if os.environ.get("VERCEL") and not secret_key:
     raise RuntimeError("Set SECRET_KEY before deploying the app.")
-app.secret_key = secret_key or secrets.token_hex(32)
+app.secret_key = secret_key or secrets.token_hex(32)  # Temporary key for local runs.
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_COOKIE_SECURE"] = bool(os.environ.get("VERCEL"))
+app.config["SESSION_COOKIE_SECURE"] = bool(os.environ.get("VERCEL"))  # HTTPS online.
 
 members = ["Elon Musk", "Donald Trump", "JD Vance"]
 
@@ -25,13 +27,14 @@ sample_expenses = [
 
 
 def get_expenses():
+    # Give each browser its own list without changing the starting data.
     if "expenses" not in session:
         session["expenses"] = list(sample_expenses)
     return session["expenses"]
 
 
 def save_expenses(expenses):
-    # Leave room for the cookie name and settings within the browser's limit.
+    # Check the signed data size before saving; browsers limit cookie size.
     serializer = app.session_interface.get_signing_serializer(app)
     if len(serializer.dumps({"expenses": expenses})) > 3500:
         return False
@@ -40,6 +43,7 @@ def save_expenses(expenses):
 
 
 def parse_amount(text):
+    # Accept both decimal separators and separate whole francs from cents.
     parts = text.strip().replace(",", ".").split(".")
     if len(parts) > 2 or not parts[0].isdecimal() or len(parts[0]) > 6:
         raise ValueError("Enter an amount between CHF 0.01 and CHF 999999.99.")
@@ -48,7 +52,7 @@ def parse_amount(text):
     if len(parts) == 2:
         if not parts[1].isdecimal() or len(parts[1]) > 2:
             raise ValueError("Use no more than two decimal places.")
-        cents = parts[1].ljust(2, "0")
+        cents = parts[1].ljust(2, "0")  # "12.5" means 12 francs and 50 cents.
 
     amount = int(parts[0]) * 100 + int(cents)
     if amount <= 0:
@@ -58,18 +62,21 @@ def parse_amount(text):
 
 @app.template_filter("chf")
 def format_chf(cents):
+    # Templates use |chf to display integer cents as an amount such as 12.50.
     sign = "-" if cents < 0 else ""
     cents = abs(cents)
-    return f"{sign}{cents // 100}.{cents % 100:02d}"
+    return f"{sign}{cents // 100}.{cents % 100:02d}"  # :02d adds a leading zero.
 
 
 @app.route("/", methods=["GET", "POST"])
 def home():
+    # GET displays the form. POST reads and validates a submitted expense.
     expenses = get_expenses()
     error = None
     form = {"person": members[0], "description": "", "amount": ""}
 
     if request.method == "POST":
+        # Keep submitted values so an invalid form can display them again.
         form = {
             "person": request.form.get("person", ""),
             "description": request.form.get("description", "").strip(),
@@ -87,6 +94,7 @@ def home():
                 error = str(message)
 
         if error is None:
+            # IDs identify entries even when descriptions are identical.
             next_id = 1
             if expenses:
                 next_id = expenses[-1]["id"] + 1
@@ -97,10 +105,13 @@ def home():
                 "description": form["description"],
                 "amount": amount,
             }
+            # Assign a new list so Flask saves the change in the session cookie.
             if save_expenses(expenses + [new_expense]):
+                # Refreshing the next GET request will not repeat this POST.
                 return redirect(url_for("home"))
             error = "The demo is full. Remove an expense before adding another."
 
+    # Pass Python values to Jinja, which fills the HTML template.
     return render_template(
         "index.html",
         members=members,
@@ -114,6 +125,7 @@ def home():
 @app.route("/settlement")
 def settlement():
     expenses = get_expenses()
+    # First calculate paid minus share, then match people who owe and receive money.
     balances = calculate_balances(members, expenses)
     return render_template(
         "settlement.html",
@@ -129,10 +141,12 @@ def delete_expense(expense_id):
     for expense in expenses:
         if expense["id"] == expense_id:
             expenses.remove(expense)
+            # Reassign the list so Flask saves the removal in the cookie.
             session["expenses"] = expenses
             return redirect(url_for("home"))
     abort(404)
 
 
 if __name__ == "__main__":
+    # Vercel imports app without running this local development server.
     app.run(debug=True, port=5001)

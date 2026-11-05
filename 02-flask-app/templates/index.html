@@ -1,17 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Expenses | Flat Force One{% endblock %}
+{% block title %}Expenses - Flat Force One{% endblock %}
 {% block content %}
-  <h1>The flat's expense sheet</h1>
-  <p>The toaster is gold. The dishes are still dirty.</p>
+  <h1>Shared expenses</h1>
+  <p>Elon, Donald and JD split their flat's shared expenses equally.</p>
   <figure class="flat-picture">
     <img src="{{ url_for('static', filename='flat-kitchen.png') }}" alt="Caricature of Elon Musk, Donald Trump and JD Vance at their shared kitchen table.">
-    <figcaption>Political satire · All expenses are fictional.</figcaption>
   </figure>
   <p class="total"><strong>Total: CHF {{ total|chf }}</strong> <span>Expenses: {{ expenses|length }}</span></p>
 
   <div class="layout">
     <section>
-      <h2>On the tab</h2>
+      <h2>Expense list</h2>
       {% if expenses %}
         <div class="table-scroll">
           <table>
@@ -25,12 +24,14 @@
               </tr>
             </thead>
             <tbody>
+              {# Flask passes the expenses list to this template. Repeat one row per expense. #}
               {% for expense in expenses %}
                 <tr>
                   <td>{{ expense["description"] }}</td>
                   <td>{{ expense["person"] }}</td>
                   <td class="number">{{ expense["amount"]|chf }}</td>
                   <td>
+                    {# Use the ID to remove this entry, even if descriptions are identical. #}
                     <form action="{{ url_for('delete_expense', expense_id=expense['id']) }}" method="post">
                       <button class="delete-button" type="submit" aria-label="Remove {{ expense['description'] }}">Remove</button>
                     </form>
@@ -41,14 +42,15 @@
           </table>
         </div>
       {% else %}
-        <p>No expenses yet. That won't last.</p>
+        <p>No expenses added yet.</p>
       {% endif %}
-      <p><a href="{{ url_for('settlement') }}">Settle up</a></p>
+      <p><a href="{{ url_for('settlement') }}">View settlement</a></p>
     </section>
 
     <section class="expense-form" aria-labelledby="add-heading">
-      <h2 id="add-heading">New shared expense</h2>
+      <h2 id="add-heading">Add an expense</h2>
       {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+      {# These field names match the keys read from request.form in home(). #}
       <form method="post" action="{{ url_for('home') }}">
         <label for="person">Paid by</label>
         <select id="person" name="person" required>
@@ -57,8 +59,8 @@
           {% endfor %}
         </select>
 
-        <label for="description">What was it for?</label>
-        <input id="description" name="description" value="{{ form['description'] }}" placeholder="e.g. washing-up liquid" maxlength="80" required>
+        <label for="description">Description</label>
+        <input id="description" name="description" value="{{ form['description'] }}" placeholder="Groceries" maxlength="80" required>
 
         <label for="amount">Amount in CHF</label>
         <input id="amount" name="amount" type="text" inputmode="decimal" value="{{ form['amount'] }}" placeholder="12.50" maxlength="10" required>

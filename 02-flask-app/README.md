@@ -1,8 +1,6 @@
 # Flat Force One
 
-A satirical Flask expense splitter for a fictional flat shared by Elon Musk, Donald Trump and JD Vance. Elon pays for Wi-Fi for Mars and a backyard rocket launch. Donald buys gold spray for the toaster. The app splits their shared costs equally and calculates who owes whom.
-
-All expenses and the flat-share story are fictional. This folder contains the Flask app assignment.
+Flat Force One splits shared expenses between Elon Musk, Donald Trump and JD Vance. It calculates each person's share and who needs to pay whom.
 
 [Live demo](https://flat-force-one-isd.vercel.app)
 
@@ -47,21 +45,21 @@ Amounts are stored as whole cents, where 100 cents equal CHF 1.00. If a total ca
 
 ```text
 02-flask-app/
-├── app.py                  Flask routes, form handling and sample data
-├── calculations.py         Totals, balances and suggested payments
-├── requirements.txt        Flask dependency
-├── vercel.json             Hosting configuration
-├── DEMO.md                 Live demonstration outline
-├── templates/
-│   ├── base.html            Shared page layout
-│   ├── index.html           Expense list and form
-│   └── settlement.html      Balances and suggested payments
-└── public/static/
-    ├── style.css           Styling
-    └── flat-kitchen.png    Caricature of the fictional flatmates
+  app.py                  Flask routes, form handling and sample data
+  calculations.py         Totals, balances and suggested payments
+  requirements.txt        Flask dependency
+  vercel.json             Hosting configuration
+  DEMO.md                 Live demonstration outline
+  templates/
+    base.html             Shared page layout
+    index.html            Expense list and form
+    settlement.html       Balances and suggested payments
+  public/static/
+    style.css             Styling
+    flat-kitchen.png      Caricature of the flatmates
 ```
 
-Each browser has its own copy of the expenses in a signed Flask session cookie. Changes survive page reloads and do not affect other visitors. Clearing the site's cookies starts a fresh demo. This is a small demonstration, with no database or shared accounts. Session cookies are signed, not encrypted, so use fictional expenses.
+Each browser has its own copy of the expenses in a signed Flask session cookie. Changes survive page reloads and do not affect other visitors. Clearing the site's cookies starts a fresh demo. There is no database or shared account. Session cookies are signed but not encrypted.
 
 Locally, the app generates a signing key at startup. Restarting it resets existing sessions unless you set a stable `SECRET_KEY` environment variable. The app rejects new entries if they would exceed its cookie storage limit.
 
@@ -74,7 +72,7 @@ The files in `public/static/` serve at `/static/` both locally and online.
 ## Manual checks
 
 1. Start the app. The expense page shows CHF 90.00 and three expenses.
-2. Open **Settle up**: JD pays Elon CHF 30.00.
+2. Open **Settlement**: JD pays Elon CHF 30.00.
 3. Add an expense paid by JD Vance, with description `Dishwashing gloves` and amount `30.00`.
 4. The total is now CHF 120.00. Donald and JD each pay Elon CHF 10.00.
 5. Remove the gloves entry. The original settlement returns.
